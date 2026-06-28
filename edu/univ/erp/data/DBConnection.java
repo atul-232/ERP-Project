@@ -13,28 +13,38 @@ public class DBConnection {
     static {
         System.out.println("[DEBUG] DBConnection static initializer called");
         try {
-            Properties props = new Properties();
-            try (FileInputStream fis = new FileInputStream("resources/config.properties")) {
-                props.load(fis);
-            }
+            // Try to load from environment variables first (production/cloud mode)
+            host = System.getenv("DB_HOST");
+            port = System.getenv("DB_PORT");
+            user = System.getenv("DB_USER");
+            password = System.getenv("DB_PASSWORD");
+            dbNameOverride = System.getenv("DB_NAME");
 
-            host = props.getProperty("db.host", "localhost");
-            port = props.getProperty("db.port", "3306");
-            user = props.getProperty("db.user", "root");
-            password = props.getProperty("db.password");
-            dbNameOverride = props.getProperty("db.name");
+            // If environment variables are missing, fallback to config.properties (local mode)
+            if (host == null || port == null || user == null || password == null) {
+                System.out.println("[DEBUG] Environment variables missing. Falling back to config.properties...");
+                Properties props = new Properties();
+                try (FileInputStream fis = new FileInputStream("resources/config.properties")) {
+                    props.load(fis);
+                }
+                if (host == null) host = props.getProperty("db.host", "localhost");
+                if (port == null) port = props.getProperty("db.port", "3306");
+                if (user == null) user = props.getProperty("db.user", "root");
+                if (password == null) password = props.getProperty("db.password");
+                if (dbNameOverride == null) dbNameOverride = props.getProperty("db.name");
+            }
 
             System.out.println("[DEBUG] Loaded DB config -> host=" + host + ", port=" + port + ", user=" + user + ", dbNameOverride=" + dbNameOverride);
 
             if (password == null || password.isEmpty()) {
-                System.out.println("[DEBUG] WARNING -> DB password missing in config.properties");
+                System.out.println("[DEBUG] WARNING -> DB password missing");
             }
 
             Class.forName("com.mysql.cj.jdbc.Driver");
             System.out.println("[DEBUG] MySQL JDBC driver loaded");
 
         } catch (IOException e) {
-            System.out.println("[DEBUG] FATAL -> config.properties not found or unreadable");
+            System.out.println("[DEBUG] FATAL -> config.properties not found or unreadable, and env variables not set");
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
             System.out.println("[DEBUG] FATAL -> MySQL JDBC driver not found");

@@ -16,12 +16,16 @@ import javax.swing.table.DefaultTableModel;
 public class TranscriptPanel extends JPanel {
     private final Session userSession;
     private final StudentAPI studentAPI;
+    private JLabel nameLabel;
+    private JLabel rollLabel;
+    private JLabel programLabel;
 
     public TranscriptPanel(Session session) {
         System.out.println("[TranscriptPanel] Constructor called");
         this.userSession = session;
         this.studentAPI = new StudentAPI();
         initComponents();
+        loadStudentProfile();
     }
 
     private void initComponents() {
@@ -72,9 +76,12 @@ public class TranscriptPanel extends JPanel {
 
         JPanel detailsPanel = new JPanel(new GridLayout(3, 1, 0, 5));
         detailsPanel.setOpaque(false);
-        detailsPanel.add(createDetailLabel("Name: " + userSession.getUsername()));
-        detailsPanel.add(createDetailLabel("ID: " + userSession.getUserId()));
-        detailsPanel.add(createDetailLabel("Program: Computer Science"));
+        nameLabel = createDetailLabel("Name: Loading...");
+        rollLabel = createDetailLabel("Roll No: Loading...");
+        programLabel = createDetailLabel("Program: Loading...");
+        detailsPanel.add(nameLabel);
+        detailsPanel.add(rollLabel);
+        detailsPanel.add(programLabel);
 
         infoCard.add(cardTitle, BorderLayout.NORTH);
         infoCard.add(Box.createRigidArea(new Dimension(0, 15)), BorderLayout.CENTER);
@@ -183,5 +190,41 @@ public class TranscriptPanel extends JPanel {
             System.err.println("[TranscriptPanel] Unexpected error: " + ex.getMessage());
             ex.printStackTrace();
         }
+    }
+
+    private void loadStudentProfile() {
+        System.out.println("[TranscriptPanel] Loading student profile in background...");
+        SwingWorker<edu.univ.erp.domain.Student, Void> worker = new SwingWorker<>() {
+            @Override
+            protected edu.univ.erp.domain.Student doInBackground() {
+                try {
+                    return studentAPI.getStudentProfile(userSession.getProfileId());
+                } catch (Exception e) {
+                    System.err.println("[TranscriptPanel] Error loading profile: " + e.getMessage());
+                    return null;
+                }
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    edu.univ.erp.domain.Student student = get();
+                    if (student != null) {
+                        nameLabel.setText("Name: " + student.getFullName());
+                        rollLabel.setText("Roll No: " + student.getRollNo());
+                        programLabel.setText("Program: " + student.getProgram() + " (Year " + student.getYear() + ")");
+                        System.out.println("[TranscriptPanel] Profile loaded successfully for " + student.getFullName());
+                    } else {
+                        nameLabel.setText("Name: " + userSession.getUsername());
+                        rollLabel.setText("Roll No: N/A");
+                        programLabel.setText("Program: Computer Science");
+                    }
+                } catch (Exception e) {
+                    System.err.println("[TranscriptPanel] Worker exception: " + e.getMessage());
+                    nameLabel.setText("Name: " + userSession.getUsername());
+                }
+            }
+        };
+        worker.execute();
     }
 }

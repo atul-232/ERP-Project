@@ -3,9 +3,9 @@
         "bin"
     ],
     "java.project.referencedLibraries": [
-        "c:\\Users\\ASUS\\Downloads\\UniversityERP\\lib\\mysql-connector-j-9.1.0.jar",
-        "c:\\Users\\ASUS\\Downloads\\UniversityERP\\lib\\slf4j-api-2.0.12.jar",
-        "c:\\Users\\ASUS\\Downloads\\UniversityERP\\lib\\flatlaf-3.2.jar",
-        "c:\\Users\\ASUS\\Downloads\\UniversityERP\\lib\\password4j-1.8.0.jar"
+        "lib/mysql-connector-j-9.1.0.jar",
+        "lib/slf4j-api-2.0.12.jar",
+        "lib/flatlaf-3.2.jar",
+        "lib/password4j-1.8.0.jar"
     ]
 }

@@ -2,6 +2,7 @@ package edu.univ.erp.util;
 
 import edu.univ.erp.data.DBConnection;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -23,11 +24,26 @@ public class DBInitializer {
         try (Connection conn = DBConnection.getConnection("auth_db");
              Statement stmt = conn.createStatement()) {
 
-            System.out.println("[DBInitializer] Creating database auth_db (if missing)...");
-            stmt.executeUpdate("CREATE DATABASE IF NOT EXISTS auth_db;");
-            stmt.executeUpdate("USE auth_db;");
+            if (DBConnection.getDbNameOverride() == null) {
+                System.out.println("[DBInitializer] Creating database auth_db (if missing)...");
+                stmt.executeUpdate("CREATE DATABASE IF NOT EXISTS auth_db;");
+                stmt.executeUpdate("USE auth_db;");
+            }
+            
             stmt.executeUpdate(sql);
             System.out.println(" auth_db schema initialized successfully.");
+
+            // Auto-seed auth table if empty
+            try (ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM `users_auth`;")) {
+                if (rs.next() && rs.getInt(1) == 0) {
+                    System.out.println("[DBInitializer] Seeding default users into users_auth...");
+                    stmt.executeUpdate("INSERT INTO `users_auth` (`user_id`, `username`, `role`, `password_hash`) VALUES " +
+                            "(1, 'admin1', 'ADMIN', '$2b$10$p0dJzlh9.riRgUMu61R7neVmBp7PutNrnjFGNsNtvSLWVIPtAXDKm'), " +
+                            "(101, 'stu1', 'STUDENT', '$2b$10$p0dJzlh9.riRgUMu61R7neVmBp7PutNrnjFGNsNtvSLWVIPtAXDKm'), " +
+                            "(102, 'stu2', 'STUDENT', '$2b$10$p0dJzlh9.riRgUMu61R7neVmBp7PutNrnjFGNsNtvSLWVIPtAXDKm'), " +
+                            "(201, 'inst1', 'INSTRUCTOR', '$2b$10$p0dJzlh9.riRgUMu61R7neVmBp7PutNrnjFGNsNtvSLWVIPtAXDKm');");
+                }
+            }
 
         } catch (SQLException e) {
             System.err.println(" Error initializing auth_db: " + e.getMessage());
@@ -41,9 +57,11 @@ public class DBInitializer {
         try (Connection conn = DBConnection.getConnection("erp_db");
              Statement stmt = conn.createStatement()) {
 
-            System.out.println("[DBInitializer] Creating database erp_db (if missing)...");
-            stmt.executeUpdate("CREATE DATABASE IF NOT EXISTS erp_db;");
-            stmt.executeUpdate("USE erp_db;");
+            if (DBConnection.getDbNameOverride() == null) {
+                System.out.println("[DBInitializer] Creating database erp_db (if missing)...");
+                stmt.executeUpdate("CREATE DATABASE IF NOT EXISTS erp_db;");
+                stmt.executeUpdate("USE erp_db;");
+            }
 
             System.out.println("[DBInitializer] Creating core tables...");
             stmt.executeUpdate("CREATE TABLE IF NOT EXISTS `courses` (" +
@@ -70,6 +88,33 @@ public class DBInitializer {
             try { stmt.executeUpdate("ALTER TABLE `grades` ADD CONSTRAINT `grades_ibfk_1` FOREIGN KEY (`enrollment_id`) REFERENCES `enrollments` (`enrollment_id`) ON DELETE CASCADE;"); System.out.println("  ✔ FK: grades → enrollments"); } catch (SQLException ignored) {}
 
             System.out.println("erp_db schema initialized successfully.");
+
+            // Auto-seed settings table if empty
+            try (ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM `settings`;")) {
+                if (rs.next() && rs.getInt(1) == 0) {
+                    System.out.println("[DBInitializer] Seeding settings table...");
+                    stmt.executeUpdate("INSERT INTO `settings` (`key`, `value`) VALUES ('maintenance_on', 'false');");
+                }
+            }
+
+            // Auto-seed instructors table if empty
+            try (ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM `instructors`;")) {
+                if (rs.next() && rs.getInt(1) == 0) {
+                    System.out.println("[DBInitializer] Seeding instructors table...");
+                    stmt.executeUpdate("INSERT INTO `instructors` (`user_id`, `full_name`, `department`) VALUES " +
+                            "(201, 'Dr. Alan Turing', 'Computer Science');");
+                }
+            }
+
+            // Auto-seed students table if empty
+            try (ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM `students`;")) {
+                if (rs.next() && rs.getInt(1) == 0) {
+                    System.out.println("[DBInitializer] Seeding students table...");
+                    stmt.executeUpdate("INSERT INTO `students` (`user_id`, `full_name`, `roll_no`, `program`, `year`) VALUES " +
+                            "(101, 'Ada Lovelace', '2025-CS-01', 'Computer Science', 1), " +
+                            "(102, 'Grace Hopper', '2025-CS-02', 'Computer Science', 1);");
+                }
+            }
 
         } catch (SQLException e) {
             System.err.println("Error initializing erp_db: " + e.getMessage());

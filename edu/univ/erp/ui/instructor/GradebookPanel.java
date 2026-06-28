@@ -201,7 +201,7 @@ public class GradebookPanel extends JPanel {
                 for (String component : currentGradebook.getAssessmentComponents()) {
                     row.add(studentGrade.getScores().getOrDefault(component, null));
                 }
-                row.add("");
+                row.add(studentGrade.getFinalGrade() != null ? studentGrade.getFinalGrade() : "");
                 tableModel.addRow(row);
             }
 
@@ -260,6 +260,8 @@ public class GradebookPanel extends JPanel {
 
             instructorAPI.calculateFinalGradesForSection(((SectionInfoDTO)sectionComboBox.getSelectedItem()).getSection().getSectionId());
             System.out.println("[GradebookPanel] Saved " + savedCount + " grade entries. Final grades recalculated.");
+
+            loadGradebookTable();
 
             statusLabel.setText("Successfully saved " + savedCount + " grade entries and updated finals!");
             statusLabel.setForeground(new Color(22, 163, 74));

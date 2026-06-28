@@ -76,6 +76,18 @@ public class StudentAPI {
         }
     }
 
+    public List<edu.univ.erp.service.StudentGradeDetailDTO> getMyGradeDetails(int studentId) {
+        System.out.println("[DEBUG] getMyGradeDetails called -> studentId=" + studentId);
+        try {
+            List<edu.univ.erp.service.StudentGradeDetailDTO> details = studentService.getMyGradeDetails(studentId);
+            System.out.println("[DEBUG] getMyGradeDetails success -> details=" + details.size());
+            return details;
+        } catch (Exception e) {
+            System.out.println("[DEBUG] getMyGradeDetails FAILED -> " + e.getMessage());
+            throw new ApiException("Failed to retrieve grade details: " + e.getMessage(), e);
+        }
+    }
+
     public List<Grade> getGradesForEnrollment(int enrollmentId) {
         System.out.println("[DEBUG] getGradesForEnrollment called -> enrollmentId=" + enrollmentId);
         try {
@@ -97,6 +109,18 @@ public class StudentAPI {
         } catch (Exception e) {
             System.out.println("[DEBUG] getTranscriptData FAILED -> " + e.getMessage());
             throw new ApiException("Failed to retrieve transcript data: " + e.getMessage(), e);
+        }
+    }
+
+    public edu.univ.erp.domain.Student getStudentProfile(int studentId) {
+        System.out.println("[DEBUG] getStudentProfile called -> studentId=" + studentId);
+        try {
+            edu.univ.erp.domain.Student student = studentService.getStudentProfile(studentId);
+            System.out.println("[DEBUG] getStudentProfile success -> student=" + (student != null ? student.getFullName() : "null"));
+            return student;
+        } catch (Exception e) {
+            System.out.println("[DEBUG] getStudentProfile FAILED -> " + e.getMessage());
+            throw new ApiException("Failed to retrieve student profile: " + e.getMessage(), e);
         }
     }
 }

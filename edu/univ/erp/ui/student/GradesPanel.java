@@ -4,6 +4,7 @@ import edu.univ.erp.api.ApiException;
 import edu.univ.erp.api.student.StudentAPI;
 import edu.univ.erp.auth.Session;
 import edu.univ.erp.domain.Enrollment;
+import edu.univ.erp.service.StudentGradeDetailDTO;
 import java.awt.*;
 import java.util.List;
 import javax.swing.*;
@@ -156,19 +157,19 @@ public class GradesPanel extends JPanel {
     private void loadGradesData() {
         System.out.println("[GradesPanel] Loading grades data for student profile ID " + userSession.getProfileId());
         try {
-            List<Enrollment> enrollments = studentAPI.getMyGrades(userSession.getProfileId());
-            System.out.println("[GradesPanel] Grades fetched: " + enrollments.size());
+            List<StudentGradeDetailDTO> gradeDetails = studentAPI.getMyGradeDetails(userSession.getProfileId());
+            System.out.println("[GradesPanel] Grades fetched: " + gradeDetails.size());
             tableModel.setRowCount(0);
 
             double totalPoints = 0;
             int totalCredits = 0;
             int passedCredits = 0;
 
-            for (Enrollment e : enrollments) {
-                String courseCode = "CS" + e.getSectionId();
-                String title = "Course Title for Section " + e.getSectionId();
-                int credits = 4;
-                String grade = e.getFinalGrade() != null ? e.getFinalGrade() : "Pending";
+            for (StudentGradeDetailDTO gd : gradeDetails) {
+                String courseCode = gd.getCourseCode();
+                String title = gd.getCourseTitle();
+                int credits = gd.getCredits();
+                String grade = gd.getFinalGrade() != null ? gd.getFinalGrade() : "Pending";
 
                 if (!grade.equals("Pending")) {
                     totalCredits += credits;

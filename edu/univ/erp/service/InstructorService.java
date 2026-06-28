@@ -44,7 +44,7 @@ public class InstructorService {
                 System.out.println("[InstructorService] No grades found for enrollmentId = " + enrollment.getEnrollmentId());
             }
 
-            studentGrades.add(new StudentGradeDTO(student, enrollment.getEnrollmentId(), scoreMap));
+            studentGrades.add(new StudentGradeDTO(student, enrollment.getEnrollmentId(), scoreMap, enrollment.getFinalGrade()));
         }
 
         System.out.println("[InstructorService] Gradebook loaded -> studentCount = " + studentGrades.size());

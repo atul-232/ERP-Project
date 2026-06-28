@@ -8,7 +8,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 
 public class DBConnection {
-    private static String host, port, user, password;
+    private static String host, port, user, password, dbNameOverride;
 
     static {
         System.out.println("[DEBUG] DBConnection static initializer called");
@@ -22,8 +22,9 @@ public class DBConnection {
             port = props.getProperty("db.port", "3306");
             user = props.getProperty("db.user", "root");
             password = props.getProperty("db.password");
+            dbNameOverride = props.getProperty("db.name");
 
-            System.out.println("[DEBUG] Loaded DB config -> host=" + host + ", port=" + port + ", user=" + user);
+            System.out.println("[DEBUG] Loaded DB config -> host=" + host + ", port=" + port + ", user=" + user + ", dbNameOverride=" + dbNameOverride);
 
             if (password == null || password.isEmpty()) {
                 System.out.println("[DEBUG] WARNING -> DB password missing in config.properties");
@@ -49,14 +50,19 @@ public class DBConnection {
             throw new SQLException("Database connection failed: Password is not set in config.properties.");
         }
 
+        String targetDb = (dbNameOverride != null && !dbNameOverride.isEmpty()) ? dbNameOverride : dbName;
         String url = String.format("jdbc:mysql://%s:%s/%s?useSSL=false&allowPublicKeyRetrieval=true",
-                host, port, dbName);
+                host, port, targetDb);
 
         System.out.println("[DEBUG] Attempting DB connection -> url=" + url + ", user=" + user);
 
         Connection conn = DriverManager.getConnection(url, user, password);
-        System.out.println("[DEBUG] DB connection SUCCESS -> dbName=" + dbName);
+        System.out.println("[DEBUG] DB connection SUCCESS -> targetDb=" + targetDb);
 
         return conn;
+    }
+
+    public static String getDbNameOverride() {
+        return dbNameOverride;
     }
 }

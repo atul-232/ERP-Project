@@ -13,6 +13,7 @@ public class StudentService {
     private final SectionDAO sectionDAO = new SectionDAO();
     private final EnrollmentDAO enrollmentDAO = new EnrollmentDAO();
     private final GradeDAO gradeDAO = new GradeDAO();
+    private final StudentDAO studentDAO = new StudentDAO();
     private final MaintenanceService maintenanceService = new MaintenanceService();
 
     public void registerForSection(int studentId, int sectionId) throws RegistrationException {
@@ -171,5 +172,34 @@ public class StudentService {
     private boolean isPastDropDeadline() {
         System.out.println("[StudentService] isPastDropDeadline check");
         return false;
+    }
+
+    public List<StudentGradeDetailDTO> getMyGradeDetails(int studentId) {
+        System.out.println("[StudentService] getMyGradeDetails called -> studentId=" + studentId);
+        List<StudentGradeDetailDTO> gradeDetails = new ArrayList<>();
+        List<Enrollment> enrollments = getMyEnrollments(studentId);
+
+        for (Enrollment enrollment : enrollments) {
+            Optional<Section> sectionOpt = sectionDAO.findById(enrollment.getSectionId());
+            if (sectionOpt.isEmpty()) continue;
+            
+            Section section = sectionOpt.get();
+            Course course = courseDAO.findById(section.getCourseId()).orElse(new Course());
+
+            gradeDetails.add(new StudentGradeDetailDTO(
+                    enrollment.getEnrollmentId(),
+                    course.getCourseCode(),
+                    course.getTitle(),
+                    enrollment.getFinalGrade(),
+                    course.getCredits()
+            ));
+        }
+        System.out.println("[StudentService] Loaded grade details -> count=" + gradeDetails.size());
+        return gradeDetails;
+    }
+
+    public Student getStudentProfile(int studentId) {
+        System.out.println("[StudentService] getStudentProfile called -> studentId=" + studentId);
+        return studentDAO.findById(studentId).orElse(null);
     }
 }

@@ -144,15 +144,25 @@ public class TimetablePanel extends JPanel {
     private void addCourseCard(TimetableEntryDTO entry) {
         System.out.println("[TimetablePanel] Placing card for course: " + entry.getCourseCode() + " at " + entry.getDayTime());
         String raw = entry.getDayTime();
+        // Remove AM/PM to prevent false positive matching of M in AM/PM for Monday
+        String cleanRaw = raw.replaceAll("(?i)\\b[AP]M\\b", "");
 
         for (String day : DAYS) {
-            if (raw.contains(day) || (day.equals("Mon") && raw.contains("M")) || (day.equals("Wed") && raw.contains("W")) || (day.equals("Fri") && raw.contains("F"))) {
+            if (cleanRaw.contains(day) || 
+                (day.equals("Mon") && cleanRaw.contains("M")) || 
+                (day.equals("Wed") && cleanRaw.contains("W")) || 
+                (day.equals("Fri") && cleanRaw.contains("F"))) {
                 for (String time : TIMES) {
                     String hour = time.split(":")[0];
-                    if (raw.contains(hour)) placeCardInCell(day + "_" + time, entry);
+                    if (matchesHour(raw, hour)) placeCardInCell(day + "_" + time, entry);
                 }
             }
         }
+    }
+
+    private boolean matchesHour(String rawTime, String hour) {
+        // Match the exact hour (e.g. "1" matches "1" or "1:00" but not "11" or "10")
+        return rawTime.matches(".*(?<!\\d)" + hour + "(?!\\d).*");
     }
 
     private void placeCardInCell(String cellName, TimetableEntryDTO entry) {

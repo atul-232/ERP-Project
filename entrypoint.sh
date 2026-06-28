@@ -24,7 +24,7 @@ sleep 2
 echo "=== Starting noVNC WebSocket Bridge on port $PORT_NUM ==="
 # websockify bridges incoming WebSocket VNC traffic to TCP VNC port 5900
 # Run with --verbose to log all connection handshakes and failures
-websockify --verbose --web /usr/share/novnc $PORT_NUM localhost:5900 &
+websockify --verbose --web /usr/share/novnc $PORT_NUM 127.0.0.1:5900 &
 
 sleep 1
 

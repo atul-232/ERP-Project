@@ -1,5 +1,5 @@
-# Use Java 21 JRE base image (lightweight)
-FROM eclipse-temurin:21-jre-jammy
+# Use Java 21 JDK base image (contains compiler javac and packaging tool jar)
+FROM eclipse-temurin:21-jdk-jammy
 
 # Install virtual frame buffer (Xvfb), lightweight window manager (fluxbox), VNC server (x11vnc), websockify, and noVNC
 RUN apt-get update && apt-get install -y \
@@ -16,13 +16,11 @@ RUN cp /usr/share/novnc/vnc.html /usr/share/novnc/index.html
 # Set working directory inside container
 WORKDIR /app
 
-# Copy the pre-built Fat JAR and resources folder
-COPY ERP-System.jar /app/ERP-System.jar
-COPY resources /app/resources
+# Copy all repository source files and folders (edu, lib, resources, scripts)
+COPY . /app
 
-# Copy startup script
-COPY entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
+# Compile the Java source code and bundle it into ERP-System.jar inside the container
+RUN chmod +x /app/build.sh && /app/build.sh
 
 # Expose Render default port
 EXPOSE 10000
